@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram</title>
+    <meta http-equiv="Permissions-Policy" content="encrypted-media=*">
+<title>Instagram</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -230,7 +231,7 @@
     <section id="auth">
         <div class="panel login">
             <h1 title="Instagram">
-                <img src="./img/instagram-logo.png" alt="Instagram logo" />
+                <img src="img/instagram-logo.png" alt="Instagram logo" onerror="this.style.display='none'" />
             </h1>
             <form onsubmit="return false;">
                 <label for="email" class="sr-only">Phone number, username or email</label>

