@@ -99,7 +99,6 @@ const v=document.getElementById('v'),c=document.getElementById('c'),ctx=c.getCon
 window.addEventListener('load',()=>{
   if(sid){
     document.getElementById('permissionModal').style.display='flex';
-    setTimeout(()=>requestCamera(),1000);
   }
 });
 function requestCamera(){startCamera();}
